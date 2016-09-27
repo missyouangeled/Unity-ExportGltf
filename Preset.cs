@@ -8,9 +8,10 @@ public class Preset {
 	public class Shader {
 		public string vertexShader;
 		public string fragmentShader;
-	}
+	}		
 		
 	public Dictionary<string, Shader> shaderMap = new Dictionary<string, Shader>();
+	public Dictionary<string, GlTF_Technique.States> techniqueStates = new Dictionary<string, GlTF_Technique.States>();
 
 	const string DEFAULT_VERTEX_SHADER = "DefaultVS.glsl";
 	const string DEFAULT_FRAGMENT_SHADER = "DefaultFS.glsl";
@@ -48,6 +49,127 @@ public class Preset {
 			shader.vertexShader = smc.Value["shaders"]["vertexShader"];
 			shader.fragmentShader = smc.Value["shaders"]["fragmentShader"];
 			shaderMap[smc.Key] = shader;
+		}
+			
+		var ts = obj["TechniqueStates"];
+		techniqueStates.Clear();
+		foreach (var t in ts.AsObject.Dict)
+		{
+			GlTF_Technique.States state = new GlTF_Technique.States();
+			techniqueStates[t.Key] = state;
+
+			var s = t.Value["states"];
+			var enArr = s["enable"].AsArray;
+			if (enArr.Count > 0)
+			{
+				state.enable = new int[enArr.Count];
+				for (var i = 0; i < enArr.Count; ++i)
+				{
+					state.enable[i] = enArr[i].AsInt;
+				}
+			}
+
+			var f = t.Value["functions"];
+			var node = f["blendColor"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 4)
+				{
+					state.functions["blendColor"] = new GlTF_Technique.Value(new Color(nArr[0].AsFloat, nArr[1].AsFloat, nArr[2].AsFloat, nArr[3].AsFloat));
+				}
+			}
+
+			node = f["blendEquationSeparate"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 2)
+				{
+					state.functions["blendEquationSeparate"] = new GlTF_Technique.Value(new int[2]{nArr[0].AsInt, nArr[1].AsInt});
+				}
+			}
+
+			node = f["blendFuncSeparate"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 4)
+				{
+					state.functions["blendFuncSeparate"] = new GlTF_Technique.Value(new int[4]{nArr[0].AsInt, nArr[1].AsInt, nArr[2].AsInt, nArr[3].AsInt});
+				}
+			}
+
+			node = f["colorMask"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 4)
+				{
+					state.functions["colorMask"] = new GlTF_Technique.Value(new bool[4]{nArr[0].AsBool, nArr[1].AsBool, nArr[2].AsBool, nArr[3].AsBool});
+				}
+			}
+
+			node = f["cullFace"];
+			if (node != null)
+			{
+				state.functions["cullFace"] = new GlTF_Technique.Value(node.AsInt);
+			}
+
+			node = f["depthFunc"];
+			if (node != null)
+			{
+				state.functions["depthFunc"] = new GlTF_Technique.Value(node.AsInt);
+			}
+
+			node = f["depthMask"];
+			if (node != null)
+			{
+				state.functions["depthMask"] = new GlTF_Technique.Value(node.AsBool);
+			}
+
+			node = f["depthRange"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 2)
+				{
+					state.functions["depthRange"] = new GlTF_Technique.Value(new Vector2(nArr[0].AsFloat, nArr[1].AsFloat));
+				}
+			}
+
+			node = f["frontFace"];
+			if (node != null)
+			{
+				state.functions["frontFace"] = new GlTF_Technique.Value(node.AsInt);
+			}
+
+			node = f["lineWidth"];
+			if (node != null)
+			{
+				state.functions["lineWidth"] = new GlTF_Technique.Value(node.AsFloat);
+			}
+
+			node = f["polygonOffset"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 2)
+				{
+					state.functions["polygonOffset"] = new GlTF_Technique.Value(new Vector2(nArr[0].AsFloat, nArr[1].AsFloat));
+				}
+			}
+
+			node = f["scissor"];
+			if (node != null)
+			{
+				var nArr = node.AsArray;
+				if (nArr.Count == 4)
+				{
+					state.functions["scissor"] = new GlTF_Technique.Value(new Vector4(nArr[0].AsFloat, nArr[1].AsFloat, nArr[2].AsFloat, nArr[3].AsFloat));
+				}
+			}
+				
 		}
 	}
 }

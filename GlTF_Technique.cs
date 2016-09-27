@@ -42,10 +42,141 @@ public class GlTF_Technique : GlTF_Writer {
 		public string param;
 	}
 
+	public class States {
+		public int[] enable;
+		public Dictionary<string, Value> functions = new Dictionary<string, Value>();
+	}		
+
+	public class Value : GlTF_Writer {
+		public enum Type {
+			Unknown,
+			Bool,
+			Int,
+			Float,
+			Color,
+			Vector2,
+			Vector4,
+			IntArr,
+			BoolArr
+		}
+
+		bool boolValue;
+		int intValue;
+		float floatValue;
+		Color colorValue;
+		Vector2 vector2Value;
+		Vector4 vector4Value;
+		int[] intArrValue;
+		bool[] boolArrvalue;
+		Type type = Type.Unknown;
+
+		public Value(bool value) 
+		{
+			boolValue = value;
+			type = Type.Bool;
+		}
+
+		public Value(int value) 
+		{
+			intValue = value;
+			type = Type.Int;
+		}
+
+		public Value(float value) 
+		{
+			floatValue = value;
+			type = Type.Float;
+		}
+
+		public Value(Color value) 
+		{
+			colorValue = value;
+			type = Type.Color;
+		}
+
+		public Value(Vector2 value) 
+		{
+			vector2Value = value;
+			type = Type.Vector2;
+		}
+
+		public Value(Vector4 value) 
+		{
+			vector4Value = value;
+			type = Type.Vector4;
+		}
+
+		public Value(int[] value)
+		{
+			intArrValue = value;
+			type = Type.IntArr;
+		}
+
+		public Value(bool[] value)
+		{
+			boolArrvalue = value;
+			type = Type.BoolArr;
+		}
+
+		void WriteArr<T>(T arr) where T:ArrayList
+		{
+			jsonWriter.Write("[");
+			for (var i = 0; i < arr.Count; ++i)
+			{
+				jsonWriter.Write(arr[i]);
+				if (i != arr.Count - 1)
+				{
+					jsonWriter.Write(", ");
+				}
+			}
+			jsonWriter.Write("]");
+		}
+
+		public override void Write()
+		{
+			switch(type) 
+			{
+				case Type.Bool:
+					jsonWriter.Write("[" + boolValue + "]");
+				break;
+
+				case Type.Int:
+					jsonWriter.Write("[" + intValue + "]");
+				break;
+
+				case Type.Float:
+					jsonWriter.Write("[" + floatValue + "]");
+				break;
+
+				case Type.Color:
+					jsonWriter.Write("[" + colorValue.r + ", " + colorValue.g + ", " + colorValue.b + ", " + colorValue.a + "]");
+				break;
+
+				case Type.Vector2:
+					jsonWriter.Write("[" + vector2Value.x + ", " + vector2Value.y + "]");
+				break;
+
+				case Type.Vector4:
+					jsonWriter.Write("[" + vector4Value.x + ", " + vector4Value.y + ", " + vector4Value.z + ", " + vector4Value.w + "]");
+				break;
+
+				case Type.IntArr:
+					WriteArr(new ArrayList(intArrValue));
+				break;
+
+			case Type.BoolArr:
+					WriteArr(new ArrayList(boolArrvalue));
+				break;
+						
+			}
+		}
+	}
+
 	public string program;
 	public List<Attribute> attributes = new List<Attribute>();
 	public List<Parameter> parameters = new List<Parameter>();
 	public List<Uniform> uniforms = new List<Uniform>();
+	public States states = new States();
 
 	public static string GetNameFromObject(Object o) 
 	{		 		
@@ -132,7 +263,48 @@ public class GlTF_Technique : GlTF_Writer {
 		}
 		Indent();		jsonWriter.Write ("\n");
 		IndentOut();
+		Indent();		jsonWriter.Write ("},\n");
+
+		// states
+		Indent();		jsonWriter.Write ("\"states\": {\n");
+		IndentIn();
+
+		if (states.enable != null)
+		{
+			Indent();	jsonWriter.Write("\"enable\": [\n");
+			IndentIn();
+			foreach (var en in states.enable)
+			{
+				CommaNL();
+				Indent();	jsonWriter.Write(en);
+			}
+			jsonWriter.Write("\n");
+			IndentOut();
+			Indent();	jsonWriter.Write("]");
+		}
+
+		if (states.functions.Count > 0) 
+		{
+			jsonWriter.Write(",\n");
+			Indent();	jsonWriter.Write("\"functions\": {\n");
+			IndentIn();
+			foreach (var fun in states.functions)
+			{
+				CommaNL();
+				Indent();	jsonWriter.Write("\"" + fun.Key + "\": ");
+				fun.Value.Write();
+			}
+			jsonWriter.Write("\n");
+			IndentOut();
+			Indent();	jsonWriter.Write("}");
+			jsonWriter.Write("\n");
+		} else {
+			jsonWriter.Write("\n");
+		}
+
+		IndentOut();
 		Indent();		jsonWriter.Write ("}\n");
+
 		IndentOut();
 		Indent();		jsonWriter.Write ("}");
 	}

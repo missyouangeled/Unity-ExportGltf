@@ -256,6 +256,18 @@ public class SceneToGlTFWiz : EditorWindow
 								GlTF_Technique tech = new GlTF_Technique();
 								tech.name = techName;
 
+								GlTF_Technique.States ts = null;
+								if (preset.techniqueStates.ContainsKey(s.name))
+								{
+									ts = preset.techniqueStates[s.name];
+								}
+								else if (preset.techniqueStates.ContainsKey("*")) 
+								{
+									ts = preset.techniqueStates["*"];									
+								}
+
+								tech.states = ts;
+
 								GlTF_Technique.Parameter tParam = new GlTF_Technique.Parameter();
 								tParam.name = "position";
 								tParam.type = GlTF_Technique.Type.FLOAT_VEC3;
