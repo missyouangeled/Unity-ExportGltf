@@ -123,7 +123,7 @@ public class GlTF_Technique : GlTF_Writer {
 			jsonWriter.Write("[");
 			for (var i = 0; i < arr.Count; ++i)
 			{
-				jsonWriter.Write(arr[i]);
+				jsonWriter.Write(arr[i].ToString().ToLower());
 				if (i != arr.Count - 1)
 				{
 					jsonWriter.Write(", ");
@@ -137,7 +137,7 @@ public class GlTF_Technique : GlTF_Writer {
 			switch(type) 
 			{
 				case Type.Bool:
-					jsonWriter.Write("[" + boolValue + "]");
+					jsonWriter.Write("[" + boolValue.ToString().ToLower() + "]");
 				break;
 
 				case Type.Int:
