@@ -74,7 +74,7 @@ public class Preset {
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 4)
+				if (nArr != null && nArr.Count == 4)
 				{
 					state.functions["blendColor"] = new GlTF_Technique.Value(new Color(nArr[0].AsFloat, nArr[1].AsFloat, nArr[2].AsFloat, nArr[3].AsFloat));
 				}
@@ -84,7 +84,7 @@ public class Preset {
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 2)
+				if (nArr != null && nArr.Count == 2)
 				{
 					state.functions["blendEquationSeparate"] = new GlTF_Technique.Value(new int[2]{nArr[0].AsInt, nArr[1].AsInt});
 				}
@@ -94,7 +94,7 @@ public class Preset {
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 4)
+				if (nArr != null && nArr.Count == 4)
 				{
 					state.functions["blendFuncSeparate"] = new GlTF_Technique.Value(new int[4]{nArr[0].AsInt, nArr[1].AsInt, nArr[2].AsInt, nArr[3].AsInt});
 				}
@@ -104,7 +104,7 @@ public class Preset {
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 4)
+				if (nArr != null && nArr.Count == 4)
 				{
 					state.functions["colorMask"] = new GlTF_Technique.Value(new bool[4]{nArr[0].AsBool, nArr[1].AsBool, nArr[2].AsBool, nArr[3].AsBool});
 				}
@@ -113,26 +113,38 @@ public class Preset {
 			node = f["cullFace"];
 			if (node != null)
 			{
-				state.functions["cullFace"] = new GlTF_Technique.Value(node.AsInt);
+				var nArr = node.AsArray;
+				if (nArr != null && nArr.Count == 1)
+				{
+					state.functions["cullFace"] = new GlTF_Technique.Value(nArr[0].AsInt);
+				}
 			}
 
 			node = f["depthFunc"];
 			if (node != null)
 			{
-				state.functions["depthFunc"] = new GlTF_Technique.Value(node.AsInt);
+				var nArr = node.AsArray;
+				if (nArr != null && nArr.Count == 1)
+				{
+					state.functions["depthFunc"] = new GlTF_Technique.Value(nArr[0].AsInt);
+				}
 			}
 
 			node = f["depthMask"];
 			if (node != null)
 			{
-				state.functions["depthMask"] = new GlTF_Technique.Value(node.AsBool);
+				var nArr = node.AsArray;
+				if (nArr != null && nArr.Count == 1)
+				{
+					state.functions["depthMask"] = new GlTF_Technique.Value(nArr[0].AsBool);
+				}
 			}
 
 			node = f["depthRange"];
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 2)
+				if (nArr != null && nArr.Count == 2)
 				{
 					state.functions["depthRange"] = new GlTF_Technique.Value(new Vector2(nArr[0].AsFloat, nArr[1].AsFloat));
 				}
@@ -141,20 +153,28 @@ public class Preset {
 			node = f["frontFace"];
 			if (node != null)
 			{
-				state.functions["frontFace"] = new GlTF_Technique.Value(node.AsInt);
+				var nArr = node.AsArray;
+				if (nArr != null && nArr.Count == 1)
+				{
+					state.functions["frontFace"] = new GlTF_Technique.Value(nArr[0].AsInt);
+				}
 			}
 
 			node = f["lineWidth"];
 			if (node != null)
 			{
-				state.functions["lineWidth"] = new GlTF_Technique.Value(node.AsFloat);
+				var nArr = node.AsArray;
+				if (nArr != null && nArr.Count == 1)
+				{
+					state.functions["lineWidth"] = new GlTF_Technique.Value(nArr[0].AsFloat);
+				}
 			}
 
 			node = f["polygonOffset"];
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 2)
+				if (nArr != null && nArr.Count == 2)
 				{
 					state.functions["polygonOffset"] = new GlTF_Technique.Value(new Vector2(nArr[0].AsFloat, nArr[1].AsFloat));
 				}
@@ -164,7 +184,7 @@ public class Preset {
 			if (node != null)
 			{
 				var nArr = node.AsArray;
-				if (nArr.Count == 4)
+				if (nArr != null && nArr.Count == 4)
 				{
 					state.functions["scissor"] = new GlTF_Technique.Value(new Vector4(nArr[0].AsFloat, nArr[1].AsFloat, nArr[2].AsFloat, nArr[3].AsFloat));
 				}
