@@ -65,7 +65,8 @@ public class SceneToGlTFWiz : EditorWindow
 		if (path.Length != 0)
 		{	
 			Transform[] trs = Selection.GetTransforms (SelectionMode.Deep);
-			Export(path, trs, trs[0]);
+			var root = (trs != null && trs.Length > 0) ? trs[0] : null;
+			Export(path, trs, root);
 		}
 	}
 
