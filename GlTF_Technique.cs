@@ -269,7 +269,7 @@ public class GlTF_Technique : GlTF_Writer {
 		Indent();		jsonWriter.Write ("\"states\": {\n");
 		IndentIn();
 
-		if (states.enable != null)
+		if (states != null && states.enable != null)
 		{
 			Indent();	jsonWriter.Write("\"enable\": [\n");
 			IndentIn();
@@ -283,7 +283,7 @@ public class GlTF_Technique : GlTF_Writer {
 			Indent();	jsonWriter.Write("]");
 		}
 
-		if (states.functions.Count > 0) 
+		if (states != null && states.functions.Count > 0) 
 		{
 			jsonWriter.Write(",\n");
 			Indent();	jsonWriter.Write("\"functions\": {\n");
