@@ -63,8 +63,9 @@ public class SceneToGlTFWiz : EditorWindow
 		var ext = GlTF_Writer.binary ? "glb" : "gltf";
 		path = EditorUtility.SaveFilePanel("Save glTF file as", savedPath, savedFile, ext);
 		if (path.Length != 0)
-		{										
-			Export(path);
+		{	
+			Transform[] trs = Selection.GetTransforms (SelectionMode.Deep);
+			Export(path, trs, trs[0]);
 		}
 	}
 
@@ -79,7 +80,7 @@ public class SceneToGlTFWiz : EditorWindow
 		}
 	}
 
-	static void Export(string path)
+	static void Export(string path, Transform[] trs, Transform root)
 	{
 		writer = new GlTF_Writer();
 		writer.Init ();
@@ -105,7 +106,6 @@ public class SceneToGlTFWiz : EditorWindow
 		writer.OpenFiles (path);
 
 		// first, collect objects in the scene, add to lists
-		Transform[] trs = Selection.GetTransforms (SelectionMode.Deep);
 		foreach (Transform tr in trs)
 		{
 			if (tr.GetComponent<Camera>() != null)
