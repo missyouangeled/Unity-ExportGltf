@@ -32,6 +32,8 @@ public class GlTF_Writer {
 	public static List<GlTF_Program> programs = new List<GlTF_Program>();
 	public static List<GlTF_Shader> shaders = new List<GlTF_Shader>();
 
+	public double[] RTCCenter;
+
 	static public string GetNameFromObject(Object o, bool useId = false) 
 	{
 		var ret = o.name;
@@ -559,15 +561,55 @@ public class GlTF_Writer {
 		IndentOut();
 		Indent();			jsonWriter.Write ("}");
 
+		List<string> extUsed = new List<string>();
 		if (binary)
+		{
+			extUsed.Add("KHR_binary_glTF");
+		}
+		var rtc = RTCCenter != null && RTCCenter.Length == 3;
+		if (rtc)
+		{
+			extUsed.Add("CESIUM_RTC");
+		}			
+
+		if (extUsed.Count > 0)
 		{
 			CommaNL();
 			Indent();			jsonWriter.Write ("\"extensionsUsed\": [\n");
 			IndentIn();
-			Indent();			jsonWriter.Write ("\"KHR_binary_glTF\"\n");
+
+			for (var i = 0; i < extUsed.Count; ++i)
+			{
+				CommaNL();
+				Indent();			jsonWriter.Write ("\"" + extUsed[i] + "\"");	
+			}
+
+			jsonWriter.Write ("\n");
 			IndentOut();
 			Indent();			jsonWriter.Write ("]");
 
+		}			
+
+		if (rtc) {
+			CommaNL();
+			Indent();			jsonWriter.Write ("\"extensions\": {\n");
+			IndentIn();
+			Indent();			jsonWriter.Write ("\"CESIUM_RTC\": {\n");
+			IndentIn();
+			Indent();			jsonWriter.Write ("\"center\": [\n");
+			IndentIn();
+			for (var i = 0; i < 3; ++i)
+			{
+				CommaNL();
+				Indent();			jsonWriter.Write (RTCCenter[i]);
+			}
+			jsonWriter.Write ("\n");
+			IndentOut();
+			Indent();			jsonWriter.Write ("]\n");
+			IndentOut();
+			Indent();			jsonWriter.Write ("}\n");
+			IndentOut();
+			Indent();			jsonWriter.Write ("}");
 		}
 
 		jsonWriter.Write ("\n");

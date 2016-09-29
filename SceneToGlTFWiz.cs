@@ -33,6 +33,12 @@ public class SceneToGlTFWiz : EditorWindow
 	static Preset preset = new Preset();
 	static UnityEngine.TextAsset presetAsset;
 
+	public interface RTCCallback
+	{
+		double[] GetCenter(Transform transform);
+	}
+	static MonoScript rtcScript;
+
 	[MenuItem ("File/Export/glTF")]
 	static void CreateWizard()
 	{
@@ -75,6 +81,17 @@ public class SceneToGlTFWiz : EditorWindow
 		GUILayout.Label("Export Options");
 		GlTF_Writer.binary = GUILayout.Toggle(GlTF_Writer.binary, "Binary GlTF");
 		presetAsset = EditorGUILayout.ObjectField("Preset file", presetAsset, typeof(UnityEngine.TextAsset), false) as UnityEngine.TextAsset;	
+		rtcScript = EditorGUILayout.ObjectField("Cesium RTC Callback", rtcScript, typeof(MonoScript), false) as MonoScript;
+
+		if (rtcScript != null)
+		{			
+			var ci = rtcScript.GetClass().GetInterface("SceneToGlTFWiz+RTCCallback");
+			if (ci == null)
+			{
+				rtcScript = null;
+			}
+		}
+
 		if (GUILayout.Button("Export"))
 		{
 			OnWizardCreate();
@@ -652,6 +669,17 @@ public class SceneToGlTFWiz : EditorWindow
 
 			GlTF_Writer.nodes.Add (node);
 		}				
+			
+
+		if (rtcScript != null && root != null)
+		{
+			var instance = Activator.CreateInstance(rtcScript.GetClass());
+			var rtc = instance as RTCCallback;
+			if (rtc != null)
+			{
+				writer.RTCCenter = rtc.GetCenter(root);
+			}
+		}
 
 		// third, add meshes etc to byte stream, keeping track of buffer offsets
 		writer.Write ();
