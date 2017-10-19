@@ -257,7 +257,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 				if (exportAnimation && m.boneWeights.Length > 0)
 				{
 					jointAccessor = new GlTF_Accessor(GlTF_Accessor.GetNameFromObject(m, "joints"), GlTF_Accessor.Type.VEC4, GlTF_Accessor.ComponentType.USHORT);
-					jointAccessor.bufferView = GlTF_Writer.vec4UintBufferView;
+					jointAccessor.bufferView = GlTF_Writer.vec4UshortBufferView;
 					GlTF_Writer.accessors.Add(jointAccessor);
 				}
 
@@ -426,42 +426,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 					mesh.primitives.Add(primitive);
 				}
 
-				SkinnedMeshRenderer skin = tr.GetComponent<SkinnedMeshRenderer>();
-				Mesh baked = m;
-				// If skinned, bake mesh in order to end with good transforms
-				// (Unity skinning directly uses mesh to deform it, and doesn't care about transform anymore)
-				// Baking allow to take the current transform into account.
-				// FIXME: could also avoid baking and use the mesh directly and reset the transform
-				if (exportAnimation && skin)
-				{
-					baked = new Mesh();
-					skin.BakeMesh(baked);
-					baked.uv = m.uv;
-					baked.uv2 = m.uv2;
-					baked.uv3 = m.uv3;
-					baked.uv4 = m.uv4;
-
-					baked.bindposes = m.bindposes;
-					baked.boneWeights = m.boneWeights;
-
-					Matrix4x4 correction = Matrix4x4.TRS(tr.localPosition, tr.localRotation, tr.lossyScale).inverse * Matrix4x4.TRS(tr.localPosition, tr.localRotation, Vector3.one);
-					if(!correction.isIdentity)
-					{
-						Vector3[] verts = baked.vertices;
-						Vector3[] norms = baked.normals;
-						for (int i = 0; i < verts.Length; ++i)
-						{
-							verts[i] = correction.MultiplyPoint3x4(verts[i]);
-							norms[i] = correction.MultiplyVector(norms[i]);
-							norms[i].Normalize();
-						}
-						baked.vertices = verts;
-						baked.normals = norms;
-						baked.RecalculateBounds();
-					}
-				}
-
-				mesh.Populate(baked);
+				// If gameobject having SkinnedMeshRenderer component has been transformed,
+				// the mesh would need to be baked here.
+				mesh.Populate(m);
 				GlTF_Writer.meshes.Add(mesh);
 				node.meshIndex = GlTF_Writer.meshes.IndexOf(mesh);
 			}
