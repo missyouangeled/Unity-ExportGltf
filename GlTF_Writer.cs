@@ -53,7 +53,6 @@ public class GlTF_Writer {
 	public static List<GlTF_Shader> shaders = new List<GlTF_Shader>();
 	public static List<GlTF_Skin> skins = new List<GlTF_Skin>();
 	public static List<GlTF_Node> rootNodes = new List<GlTF_Node>();
-	public static Matrix4x4 sceneRootMatrix;
 
 	// Keys are original file path, values correspond to the directory in the output zip file
 	public static Dictionary<string, string> exportedFiles = new Dictionary<string, string>();
