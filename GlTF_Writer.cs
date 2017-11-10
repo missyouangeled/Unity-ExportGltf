@@ -19,8 +19,11 @@ public class GlTF_Writer {
 	public static GlTF_BufferView vec2BufferView = new GlTF_BufferView("vec2BufferView", 8);
 	public static GlTF_BufferView vec3BufferView = new GlTF_BufferView("vec3BufferView", 12);
 	public static GlTF_BufferView vec4BufferView = new GlTF_BufferView("vec4BufferView", 16);
-	public static GlTF_BufferView vec4UintBufferView = new GlTF_BufferView("vec4UintBufferView", 16);
+	public static GlTF_BufferView vec4UshortBufferView = new GlTF_BufferView("vec4UshortBufferView", 8);
 	public static GlTF_BufferView mat4BufferView = new GlTF_BufferView("mat4BufferView", 64);
+
+	public static GlTF_BufferView vec3BufferViewAnim = new GlTF_BufferView("vec3BufferViewAnim", 12);
+	public static GlTF_BufferView vec4BufferViewAnim = new GlTF_BufferView("vec4BufferViewAnim", 16);
 
 	public static List<GlTF_BufferView> bufferViews = new List<GlTF_BufferView>();
 	public static List<GlTF_Camera> cameras = new List<GlTF_Camera>();
@@ -50,7 +53,6 @@ public class GlTF_Writer {
 	public static List<GlTF_Shader> shaders = new List<GlTF_Shader>();
 	public static List<GlTF_Skin> skins = new List<GlTF_Skin>();
 	public static List<GlTF_Node> rootNodes = new List<GlTF_Node>();
-	public static Matrix4x4 sceneRootMatrix;
 
 	// Keys are original file path, values correspond to the directory in the output zip file
 	public static Dictionary<string, string> exportedFiles = new Dictionary<string, string>();
@@ -59,7 +61,7 @@ public class GlTF_Writer {
 	public static bool exportPBRMaterials;
 	public static bool hasSpecularMaterials = false;
 	public static bool convertRightHanded = true;
-	public static string exporterVersion = "2.1.1";
+	public static string exporterVersion = "2.2.0";
 	public static Regex rgx = new Regex("[^a-zA-Z0-9 -_.]");
 	
 	static public string cleanNonAlphanumeric(string s)
@@ -133,8 +135,19 @@ public class GlTF_Writer {
 		vec2BufferView = new GlTF_BufferView("vec2BufferView", 8);
 		vec3BufferView = new GlTF_BufferView("vec3BufferView", 12);
 		vec4BufferView = new GlTF_BufferView("vec4BufferView", 16);
-		vec4UintBufferView = new GlTF_BufferView("vec4iBufferView", 16);
+		vec4UshortBufferView = new GlTF_BufferView("vec4iBufferView", 8);
 		mat4BufferView = new GlTF_BufferView("mat4BufferView", 64);
+		
+		//Animation
+		vec3BufferViewAnim = new GlTF_BufferView("vec3BufferViewAnim", 12);
+		vec4BufferViewAnim = new GlTF_BufferView("vec4BufferViewAnim", 16);
+
+		vec2BufferView.target = (int)GlTF_BufferView.TARGET.ARRAY;
+		vec3BufferView.target = (int)GlTF_BufferView.TARGET.ARRAY;
+		vec4BufferView.target = (int)GlTF_BufferView.TARGET.ARRAY;
+		ushortBufferView.target = (int)GlTF_BufferView.TARGET.ELEMENT;
+
+
 		bufferViews = new List<GlTF_BufferView>();
 		cameras = new List<GlTF_Camera>();
 		lights = new List<GlTF_Light>();
@@ -282,30 +295,41 @@ public class GlTF_Writer {
 		if (vec4BufferView.byteLength > 0)
 			bufferViews.Add (vec4BufferView);
 
-		if (vec4UintBufferView.byteLength > 0)
-			bufferViews.Add(vec4UintBufferView);
+		if (vec4UshortBufferView.byteLength > 0)
+			bufferViews.Add(vec4UshortBufferView);
 
 		if (mat4BufferView.byteLength > 0)
 			bufferViews.Add (mat4BufferView);
+
+		if (vec3BufferViewAnim.byteLength > 0)
+			bufferViews.Add(vec3BufferViewAnim);
+
+		if (vec4BufferViewAnim.byteLength > 0)
+			bufferViews.Add(vec4BufferViewAnim);
 
 		ushortBufferView.bin = binary;
 		floatBufferView.bin = binary;
 		vec2BufferView.bin = binary;
 		vec3BufferView.bin = binary;
 		vec4BufferView.bin = binary;
-		vec4UintBufferView.bin = binary;
+		vec4UshortBufferView.bin = binary;
 		mat4BufferView.bin = binary;
+
+		vec3BufferViewAnim.bin = binary;
+		vec4BufferViewAnim.bin = binary;
 
 		// write memory streams to binary file
 		floatBufferView.byteOffset = 0;
 		vec2BufferView.byteOffset = floatBufferView.byteOffset + floatBufferView.byteLength;
 		vec3BufferView.byteOffset = vec2BufferView.byteOffset + vec2BufferView.byteLength;
 		vec4BufferView.byteOffset = vec3BufferView.byteOffset + vec3BufferView.byteLength;
-		vec4UintBufferView.byteOffset = vec4BufferView.byteOffset + vec4BufferView.byteLength;
-		mat4BufferView.byteOffset = vec4UintBufferView.byteOffset + vec4UintBufferView.byteLength;
+		vec4UshortBufferView.byteOffset = vec4BufferView.byteOffset + vec4BufferView.byteLength;
+		mat4BufferView.byteOffset = vec4UshortBufferView.byteOffset + vec4UshortBufferView.byteLength;
 		ushortBufferView.byteOffset = mat4BufferView.byteOffset + mat4BufferView.byteLength;
+		vec3BufferViewAnim.byteOffset = ushortBufferView.byteOffset + ushortBufferView.byteLength;
+		vec4BufferViewAnim.byteOffset = vec3BufferViewAnim.byteOffset + vec3BufferViewAnim.byteLength;
 
-		long bufferByteLength = ushortBufferView.byteOffset + ushortBufferView.byteLength;
+		long bufferByteLength = vec4BufferViewAnim.byteOffset + vec4BufferViewAnim.byteLength;
 
 		jsonWriter.Write ("{\n");
 		IndentIn();
@@ -377,7 +401,7 @@ public class GlTF_Writer {
 			IndentIn();
 			Indent();	jsonWriter.Write ("\"binary_glTF\": {\n");
 			IndentIn();
-			Indent();	jsonWriter.Write ("\"byteLength\": "+ (mat4BufferView.byteOffset+ mat4BufferView.byteLength)+",\n");
+			Indent();	jsonWriter.Write ("\"byteLength\": "+ (vec4BufferViewAnim.byteOffset+ vec4BufferViewAnim.byteLength)+",\n");
 			Indent();	jsonWriter.Write ("\"type\": \"arraybuffer\"\n");
 
 			IndentOut();
@@ -606,9 +630,12 @@ public class GlTF_Writer {
 		vec2BufferView.memoryStream.WriteTo (binFile);
 		vec3BufferView.memoryStream.WriteTo (binFile);
 		vec4BufferView.memoryStream.WriteTo (binFile);
-		vec4UintBufferView.memoryStream.WriteTo(binFile);
+		vec4UshortBufferView.memoryStream.WriteTo(binFile);
 		mat4BufferView.memoryStream.WriteTo(binFile);
 		ushortBufferView.memoryStream.WriteTo(binFile);
+
+		vec3BufferViewAnim.memoryStream.WriteTo(binFile);
+		vec4BufferViewAnim.memoryStream.WriteTo(binFile);
 
 		binFile.Flush();
 		if (binary)

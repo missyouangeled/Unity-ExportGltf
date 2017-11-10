@@ -136,15 +136,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		// Create rootNode
 		GlTF_Node correctionNode = new GlTF_Node();
-		correctionNode.id = "UnityGlTF_correctionMatrix";
-		correctionNode.name = "UnityGlTF_correctionMatrix";
-
-		// Add correction matrix to reorient scene for left to right-handed coordinate systems
-		Quaternion correctionQuat = Quaternion.Euler(0, 180, 0);
-		writer.convertQuatLeftToRightHandedness(ref correctionQuat);
-		Matrix4x4 correctionMat = Matrix4x4.TRS(Vector3.zero, correctionQuat, Vector3.one);
-		GlTF_Writer.sceneRootMatrix = correctionMat;
-		correctionNode.matrix = new GlTF_Matrix(correctionMat, false);
+		correctionNode.id = "UnityGlTF_root";
+		correctionNode.name = "UnityGlTF_root";
 		GlTF_Writer.nodes.Add(correctionNode);
 		GlTF_Writer.nodeNames.Add(correctionNode.name);
 		GlTF_Writer.rootNodes.Add(correctionNode);
@@ -256,8 +249,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 				GlTF_Accessor jointAccessor = null;
 				if (exportAnimation && m.boneWeights.Length > 0)
 				{
-					jointAccessor = new GlTF_Accessor(GlTF_Accessor.GetNameFromObject(m, "joints"), GlTF_Accessor.Type.VEC4, GlTF_Accessor.ComponentType.UNSIGNED_INT);
-					jointAccessor.bufferView = GlTF_Writer.vec4UintBufferView;
+					jointAccessor = new GlTF_Accessor(GlTF_Accessor.GetNameFromObject(m, "joints"), GlTF_Accessor.Type.VEC4, GlTF_Accessor.ComponentType.USHORT);
+					jointAccessor.bufferView = GlTF_Writer.vec4UshortBufferView;
 					GlTF_Writer.accessors.Add(jointAccessor);
 				}
 
@@ -426,42 +419,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 					mesh.primitives.Add(primitive);
 				}
 
-				SkinnedMeshRenderer skin = tr.GetComponent<SkinnedMeshRenderer>();
-				Mesh baked = m;
-				// If skinned, bake mesh in order to end with good transforms
-				// (Unity skinning directly uses mesh to deform it, and doesn't care about transform anymore)
-				// Baking allow to take the current transform into account.
-				// FIXME: could also avoid baking and use the mesh directly and reset the transform
-				if (exportAnimation && skin)
-				{
-					baked = new Mesh();
-					skin.BakeMesh(baked);
-					baked.uv = m.uv;
-					baked.uv2 = m.uv2;
-					baked.uv3 = m.uv3;
-					baked.uv4 = m.uv4;
-
-					baked.bindposes = m.bindposes;
-					baked.boneWeights = m.boneWeights;
-
-					Matrix4x4 correction = Matrix4x4.TRS(tr.localPosition, tr.localRotation, tr.lossyScale).inverse * Matrix4x4.TRS(tr.localPosition, tr.localRotation, Vector3.one);
-					if(!correction.isIdentity)
-					{
-						Vector3[] verts = baked.vertices;
-						Vector3[] norms = baked.normals;
-						for (int i = 0; i < verts.Length; ++i)
-						{
-							verts[i] = correction.MultiplyPoint3x4(verts[i]);
-							norms[i] = correction.MultiplyVector(norms[i]);
-							norms[i].Normalize();
-						}
-						baked.vertices = verts;
-						baked.normals = norms;
-						baked.RecalculateBounds();
-					}
-				}
-
-				mesh.Populate(baked);
+				// If gameobject having SkinnedMeshRenderer component has been transformed,
+				// the mesh would need to be baked here.
+				mesh.Populate(m);
 				GlTF_Writer.meshes.Add(mesh);
 				node.meshIndex = GlTF_Writer.meshes.IndexOf(mesh);
 			}
@@ -1018,14 +978,21 @@ public class SceneToGlTFWiz : MonoBehaviour
 			TextureImporter im = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bumpTexture)) as TextureImporter;
 			bool isBumpMap = im.convertToNormalmap;
 
-			var textureValue = new GlTF_Material.DictValue();
-			textureValue.name = isBumpMap ? "bumpTexture" : "normalTexture";
+			if(isBumpMap)
+			{
+				Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
+			}
+			else
+			{
+				var textureValue = new GlTF_Material.DictValue();
+				textureValue.name = "normalTexture";
 
-			int bumpTextureIndex = processTexture(bumpTexture, isBumpMap ? IMAGETYPE.RGB : IMAGETYPE.NORMAL_MAP);
-			textureValue.intValue.Add("index", bumpTextureIndex);
-			textureValue.intValue.Add("texCoord", 0);
-			textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
-			material.values.Add(textureValue);
+				int bumpTextureIndex = processTexture(bumpTexture, IMAGETYPE.NORMAL_MAP);
+				textureValue.intValue.Add("index", bumpTextureIndex);
+				textureValue.intValue.Add("texCoord", 0);
+				textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
+				material.values.Add(textureValue);
+			}
 		}
 
 		//Emissive
