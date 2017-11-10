@@ -978,14 +978,21 @@ public class SceneToGlTFWiz : MonoBehaviour
 			TextureImporter im = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bumpTexture)) as TextureImporter;
 			bool isBumpMap = im.convertToNormalmap;
 
-			var textureValue = new GlTF_Material.DictValue();
-			textureValue.name = isBumpMap ? "bumpTexture" : "normalTexture";
+			if(isBumpMap)
+			{
+				Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
+			}
+			else
+			{
+				var textureValue = new GlTF_Material.DictValue();
+				textureValue.name = "normalTexture";
 
-			int bumpTextureIndex = processTexture(bumpTexture, isBumpMap ? IMAGETYPE.RGB : IMAGETYPE.NORMAL_MAP);
-			textureValue.intValue.Add("index", bumpTextureIndex);
-			textureValue.intValue.Add("texCoord", 0);
-			textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
-			material.values.Add(textureValue);
+				int bumpTextureIndex = processTexture(bumpTexture, IMAGETYPE.NORMAL_MAP);
+				textureValue.intValue.Add("index", bumpTextureIndex);
+				textureValue.intValue.Add("texCoord", 0);
+				textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
+				material.values.Add(textureValue);
+			}
 		}
 
 		//Emissive
