@@ -520,7 +520,7 @@ public class ExporterSKFB : EditorWindow {
 			}
 			GUILayout.Label("Options", EditorStyles.boldLabel);
 			GUILayout.BeginHorizontal();
-			opt_exportAnimation = EditorGUILayout.Toggle("Export animation", opt_exportAnimation);
+			opt_exportAnimation = EditorGUILayout.Toggle("Export animation (beta)", opt_exportAnimation);
 			GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
 
